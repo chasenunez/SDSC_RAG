@@ -87,7 +87,34 @@ Goal: answer "how has urban heat changed in <name a big swiss city>?" using the 
    └───────────────────────────────────────────────┘
 ```
 
+## Acronyms (of which there are many)
 
+- **RAG**: Retrieval-Augmented Generation. Fetch real sources, then have a model write the answer.
+- **LLM**: Large Language Model. The text-writing model.
+- **KG**: Knowledge Graph. The network of facts.
+- **RDF**: Resource Description Framework. A standard way to write graph facts as simple "subject, relationship, object" statements.
+- **SPARQL**: the query language for asking questions of an RDF graph (like a search language for the graph).
+- **CRS**: Coordinate Reference System. The recipe for map coordinates.
+- **EPSG**: a catalogue of CRS codes (for example EPSG:2056, EPSG:4326).
+- **WGS84**: the worldwide latitude/longitude CRS (EPSG:4326).
+- **LV95**: Switzerland's national CRS (EPSG:2056).
+- **UTM**: a regional flat-map CRS family.
+- **LST**: Land Surface Temperature. Ground/rooftop heat.
+- **QA**: Quality Assurance. The satellite band that flags clouds and bad pixels.
+- **STAC**: SpatioTemporal Asset Catalog. A standard online catalogue for finding satellite data.
+- **COG**: Cloud-Optimized GeoTIFF. An image format you can read in small pieces over the internet.
+- **GeoTIFF**: an image file that also stores where on Earth it belongs.
+- **GeoPackage (GPKG)**: a single-file format for map shapes and data.
+- **GIS**: Geographic Information System. Software for working with maps and spatial data.
+- **OGC**: Open Geospatial Consortium. The body that sets many mapping standards.
+- **API**: Application Programming Interface. A defined way for one program to request data or actions from another.
+- **CLI**: Command-Line Interface. Typing commands in a terminal.
+- **CSV**: Comma-Separated Values. A plain-text table.
+- **JSON**: a plain-text format for structured data (lists and labelled fields).
+- **BFS**: the Swiss Federal Statistical Office; also the municipality ID it issues.
+- **USGS / NASA**: the US agencies behind Landsat.
+- **MeteoSwiss, BAFU, ARE, NCCS**: Swiss federal bodies for weather, environment, spatial development, and climate services; publishers of several source documents.
+- **MIT (license)**: a permissive open-source license letting anyone reuse the code.
 
 
 
