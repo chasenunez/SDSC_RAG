@@ -143,10 +143,10 @@ def answer_panel(question: str, city: config.City, ret: retrieval.Retrieval, sum
 
 def main():
     st.title("How has urban heat changed in this region over the last decade?")
-    """st.write(
+    st.caption(
         "Surface temperature, Swiss boundary data, and city heat-plans, "
         "linked through a knowledge graph and answered with cited sources."
-    )"""
+    )
 
     with st.sidebar:
         st.header("Query")

@@ -1,10 +1,12 @@
 # Swiss Urban Heat: a Geo-RAG + Knowledge Graph slice
 
-You pick a Swiss city and ask "how has urban heat changed here over the last decade?" The tool pulls real satellite measurements of how hot the ground gets, finds the official reports that describe that city and its region, and writes a short answer that cites those reports. It shows all of this on one screen: a map with a heat overlay, a panel listing the documents it used, and the written answer.
+You pick a Swiss city and ask "how has urban heat changed here over the last decade?" The tool interprets the question, pulls real satellite measurements of how hot the ground gets in a city, finds the official reports that describe that city and its region, and writes a short answer that cites those reports. It shows all of this on one screen: a map with a heat overlay, a panel listing the documents it used, and the written answer.
+
+![RAGDemo](assets/dashboard.png)
 
 ### The structure of this repo
 
-The goal (as stipulated by the instructions) is to build "a working vertical slice" that answers one question end to end. To that end, this is a proof of concept for how three components can be combined in a scalable way:
+The goal (as stipulated by the instructions) is to build a working vertical slice that answers one question end to end. To that end, this is a proof of concept for how three components can be combined in a scalable way:
 
 1) *Geospatial data*: ideally a publicly accessible satellite remote sensing product with a sufficiently long time series. The example here is urban heat — temperature is one of the more robust and well-documented data products, so it's a sensible starting point. Precipitation and snow cover would be the next candidates for Switzerland.
 
@@ -12,9 +14,9 @@ The goal (as stipulated by the instructions) is to build "a working vertical sli
 
 3) *A RAG (retrieval-augmented generation) module* that grounds the LLM in external data, letting it return specific, citable, up-to-date material instead of relying on static training data.
 
-The shape, in one line: the knowledge graph decides *which* documents are relevant by where they apply, and only then does the search look *inside* those documents. The graph leads, the search follows.
+The knowledge graph decides which documents are relevant by where they apply, and only then does the search look inside those documents. The graph leads, the search follows.
 
-A note on background: my experience with KGs, RAG, and LLMs comes mostly from a boot.dev course, while I've spent more time retrieving, combining, and analyzing geospatial remote sensing data for global inference. I leaned into the geospatial layer where I had the most leverage and kept the graph and RAG layers a tight, scoped slice rather than overreaching. With that out of the way, let's talk turkey.
+A note on background: my experience with KGs, RAG, and LLMs comes mostly from a boot.dev course, whereas I've spent more time retrieving, combining, and analyzing geospatial remote sensing data for global inference. I leaned into the geospatial computation where I had the most leverage and kept the graph and RAG layers a tight, scoped slice rather than overreaching. With that out of the way, let's talk turkey.
 
 ### Scoping and specifics
 
@@ -29,10 +31,10 @@ The full scope document lives in [`SCOPE.md`](SCOPE.md). The short version is be
 
 #### What I simplified for time and computing budget
 
-- I stayed inside Switzerland and worked at city scale: Zürich, Genève, Basel, Bern, Lausanne. A small region set lets each city carry real, distinct documents rather than pretending a tiny corpus covers a whole country. The graph hierarchy is modelled as city within canton within country, so the same retrieval code works at coarser scales; only the data loading would change.
-- One clear-sky summer Landsat scene per year, not monthly composites. Each value carries that day's weather, so the headline decadal trend is reported alongside its year-to-year spread and labelled indicative rather than definitive. This is the single biggest honest weakness, and the first thing I'd replace with a monthly median.
-- The corpus is seven (real) climate-policy documents stored as source-grounded summaries with verified titles, publishers, years, and URLs, rather than full PDF ingestion. Keeps the repo small and license-clean while still giving retrieval real, citable material per region.
-- A deterministic, clearly-labelled templated fallback runs when no LLM key is set (or when the call fails), so the narrative panel is never empty for a reviewer without an OpenRouter account.
+- I stayed **inside Switzerland** and worked at city scale: Zürich, Genève, Basel, Bern, Lausanne. A small region set lets each city carry real, distinct documents rather than pretending a tiny corpus covers a whole country. The graph hierarchy is modelled as city within canton within country, so the same retrieval code works at coarser scales; only the data loading would change.
+- **One clear-sky summer Landsat scene per year, not monthly composites**. Each value carries that day's weather, so the headline decadal trend is reported alongside its year-to-year spread and labelled indicative rather than definitive. This is the single biggest simplification, and the first thing I'd replace with a monthly median with more time. 
+- The corpus is **seven (real) climate-policy documents** stored as source-grounded summaries with verified titles, publishers, years, and URLs, rather than full PDF ingestion. Keeps the repo small and license-clean while still giving retrieval real, citable material per region.
+- A deterministic, clearly-labelled templated fallback runs when no LLM key is set (or when the call fails), so the narrative panel is never empty for a reviewer without an OpenRouter account. But the LLM does work, if you have a positive balance. 
 
 #### What I deliberately left out
 
@@ -203,12 +205,7 @@ The dashboard tells you explicitly:
 - **With a key set**: pressing the sidebar "Run" button shows a "Generating grounded answer…" spinner, then a prose answer.
 - **Without a key**: a caption appears above the answer reading "Generated without an LLM (no `OPENROUTER_API_KEY` set): a templated summary of the retrieved evidence. Set a key for a written narrative."
 
-If you set the key and still see the fallback caption, check, in this order:
-
-1. The file is named exactly `.env` (not `.env.txt` or `.env.example`) and sits in the repo root next to `pyproject.toml`. The loader looks for `<repo-root>/.env`.
-2. The value has no surrounding quotes.
-3. You need to trigger a Streamlit rerun for the new key to be picked up. The simplest way: change the city in the sidebar, or stop the app with Ctrl+C and run `make run` again.
-4. Your shell does not already have a stale empty `OPENROUTER_API_KEY` exported. Check with `echo $OPENROUTER_API_KEY`. Shell exports win over `.env`. If you see something unexpected, run `unset OPENROUTER_API_KEY` and restart the app.
+If you set the key and still see the fallback caption, check, The file is named exactly `.env` and that the value has no surrounding quotes.
 
 ## What to do once it's open
 
@@ -219,6 +216,6 @@ If you set the key and still see the fallback caption, check, in this order:
 
 ## Next steps
 
-The clearest improvement for scaling is to compute the heat trend on a server-side service like Google Earth Engine instead of pulling single scenes here. GEE runs the analysis over its Landsat catalog, so cloud masking, monthly compositing, and a per-pixel trend (`ee.Reducer.linearFit` over `system:time_start`) would replace the weather-noisy single-scene loop in `heat.py`, and `reduceRegions` returns per-region statistics for every municipality in one call, which is what makes canton or national scale practical rather than a per-area download.
+In addition to using more accurate and constrained temperatures (for scientific accuracy), The clearest improvement for scaling the app is to compute the heat trend on a server-side service like Google Earth Engine instead of pulling single scenes here. GEE runs the analysis over its Landsat catalog, so cloud masking, monthly compositing, and a per-pixel trend (`ee.Reducer.linearFit` over `system:time_start`) would replace the weather-noisy single-scene loop in `heat.py`, and `reduceRegions` returns per-region statistics for every municipality in one call, which is what makes canton or national scale practical rather than a per-area download.
 
 The tradeoff is access. GEE needs a registered Google Cloud project (free for noncommercial and academic use, but with an eligibility questionnaire and quota tiers), so depending on it at runtime would break the current clone-and-run setup. The way to get both is to use GEE as an offline precompute step: run it once to produce the per-region, per-year statistics and a composite raster, commit those as cached artifacts, and keep the dashboard dependency-free. That is the same precompute-and-cache shape `scripts/setup_data.py` already uses, just with a more capable backend. At national scale the cached statistics would move from CSV to DuckDB or Parquet so the lookups stay fast.
