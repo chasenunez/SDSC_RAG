@@ -1,6 +1,6 @@
 """This pulls all the data needed for the example. 
 
-The ideas is thatyou will run once after installing dependencies. 
+The ideas is thatyou will run once after installing dependencies. confirmed now that the dependencies have been built. 
 
 Each step stores its output under
 data/cache, so re-running isn't goinf to take too long, hopefully making this snappy

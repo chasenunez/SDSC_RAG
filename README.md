@@ -99,6 +99,10 @@ src/geokg/
   index.py       embed chunks into local Qdrant
   retrieval.py   graph-first retrieval (graph filters, vectors rank)
   rag.py         pydantic-ai agent over OpenRouter, grounded + cited
+   viz.py         LST raster to map-overlay image
+scripts/setup_data.py   one-shot data preparation
+app/dashboard.py        Streamlit map + graph panel + answer
+tests/test_pipeline.py  bbox/projection, graph traversal, retrieval filter
 
 ```
 
