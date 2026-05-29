@@ -1,2 +1,20 @@
 .env
 .DS_Store
+
+# Python build/runtime artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+# Virtualenv (uv lives here)
+.venv/
+# Data: ignore caches and bulk downloads, but KEEP the document manifest
+# so a clean clone has the corpus the RAG layer reads.
+data/cache/
+data/*.gpkg
+data/*.tif
+!data/documents/
+!data/documents/**
