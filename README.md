@@ -104,6 +104,15 @@ scripts/setup_data.py   one-shot data preparation
 app/dashboard.py        Streamlit map + graph panel + answer
 ```
 
+## What it shows, and what it does not
+
+The Landsat numbers are one clear-sky summer scene per year, so they are weather-noisy: the year-to-year spread is comparable to any decadal trend, and the dashboard says so rather than claiming a clean warming signal. A more robust trend would need monthly composites or station data.
+
+## Next steps
+
+The clearest improvement for scaling is to compute the heat trend on a server-side service like Google Earth Engine instead of pulling single scenes here. GEE runs the analysis over its Landsat catalog, so cloud masking, monthly compositing, and a per-pixel trend (`ee.Reducer.linearFit` over `system:time_start`) would replace the weather-noisy single-scene loop in `heat.py`, and `reduceRegions` returns per-region statistics for every municipality in one call, which is what makes canton or national scale practical rather than a per-area download. 
+
+The tradeoff is access. GEE needs a registered Google Cloud project (free for noncommercial and academic use, but with an eligibility questionnaire and quota tiers), so depending on it at runtime would break the current clone-and-run setup. The way to get both is to use GEE as an offline precompute step: run it once to produce the per-region, per-year statistics and a composite raster, commit those as cached artifacts, and keep the dashboard dependency-free. That is the same precompute-and-cache shape `scripts/setup_data.py` already uses, just with a more capable backend. At national scale the cached statistics would move from CSV to DuckDB or Parquet so the lookups stay fast.
 
  ## Acronyms (of which there are many)
 
