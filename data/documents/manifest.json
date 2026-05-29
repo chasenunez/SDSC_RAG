@@ -1,0 +1,75 @@
+{
+  "_about": "Publicly available documents on Swiss urban heat and climate adaptation. Each `content` is a source-grounded summary written for this project. The hope is to keep the corpus small and license-clean. `region` ties the document into the knowledge graph (country CH, a canton abbreviation, or a city name).",
+  "documents": [
+    {
+      "id": "ch2018",
+      "title": "CH2018 - Climate Scenarios for Switzerland: Technical Report",
+      "publisher": "National Centre for Climate Services (NCCS)",
+      "year": 2018,
+      "region": "CH",
+      "url": "https://www.nccs.admin.ch/nccs/en/home/climate-change-and-impacts/swiss-climate-change-scenarios/technical-report.html",
+      "synthetic": false,
+      "content": "CH2018 is the reference set of climate-change scenarios for Switzerland, produced under the National Centre for Climate Services with input from MeteoSwiss, ETH Zurich (C2SM), the University of Bern, and WSL/SLF. Under continued greenhouse-gas emissions the scenarios project hotter and drier summers, and a marked rise in the frequency and intensity of heatwaves and hot days across the country. The lower-lying parts of the Swiss Plateau, where the major cities sit, see some of the largest increases in heat load. The report is the common scientific basis for cantonal and municipal climate-adaptation planning. ISBN 978-3-9525031-4-0."
+    },
+    {
+      "id": "hitze_in_staedten",
+      "title": "Hitze in Städten - Grundlage für eine klimaangepasste Siedlungsentwicklung",
+      "publisher": "Federal Office for the Environment (BAFU) and Federal Office for Spatial Development (ARE)",
+      "year": 2018,
+      "region": "CH",
+      "url": "https://www.bafu.admin.ch/bafu/en/home/topics/climate/publications-studies/publications/hitze-in-staedten.html",
+      "synthetic": false,
+      "content": "This federal guidance document explains why dense, sealed urban areas warm more than their surroundings and sets out how spatial planning can reduce urban heat. Recommended measures include protecting cold-air production areas and night-time ventilation corridors, unsealing and greening surfaces, planting shade trees, and adding water features and accessible cool spaces. It stresses protecting vulnerable groups such as the elderly and the sick, and is aimed at cantons and municipalities integrating heat into land-use planning."
+    },
+    {
+      "id": "zurich_fachplanung",
+      "title": "Fachplanung Hitzeminderung",
+      "publisher": "Stadt Zürich (Grün Stadt Zürich)",
+      "year": 2020,
+      "region": "Zürich",
+      "url": "https://www.stadt-zuerich.ch/de/umwelt-und-energie/klima/klimaanpassung/hitze/fachplanung-hitzeminderung.html",
+      "synthetic": false,
+      "content": "The City of Zurich's heat-mitigation plan translates climate adaptation into spatial measures. It is built from three sub-plans: a cold-air system, heat mitigation, and relief (cool) systems. Based on day-time and night-time bioclimatic stress it defines three action areas of differing urgency, with the most stressed being dense, highly populated zones and those with sensitive uses such as schools, care facilities and senior centres. The plan prioritises new and upgraded green space to relieve these areas, and a status report covered the first implementation period 2020-2023."
+    },
+    {
+      "id": "basel_stadtklimaanalyse",
+      "title": "Stadtklimaanalyse Kanton Basel-Stadt 2019",
+      "publisher": "Kanton Basel-Stadt",
+      "year": 2019,
+      "region": "BS",
+      "url": "https://www.bs.ch/news/2019-klimaanalyse-kanton-basel-stadt-liegt-vor",
+      "synthetic": false,
+      "content": "The city-climate analysis for the canton of Basel-Stadt models the present situation and the year 2030 across the whole canton. It finds that roughly two-thirds of settlement and commercial land becomes thermally stressed under summer weather, with heat islands concentrated in densely built inner-city quarters such as St. Johann, Gundeldingen, Matthäus and Klybeck. The analysis maps cold-air flows and thermally loaded areas and underpins the canton's climate-adaptation measures, including climate-adapted open spaces, greening, shading and accessible water."
+    },
+    {
+      "id": "geneve_plan_climat",
+      "title": "Plan climat cantonal genevois 2030",
+      "publisher": "République et canton de Genève",
+      "year": 2021,
+      "region": "GE",
+      "url": "https://www.ge.ch/dossier/ville-climatique/ville-adapte-au-climat/plan-climat-cantonal-accompagner-ville-aujourd-hui",
+      "synthetic": false,
+      "content": "Geneva's cantonal climate plan and its 2025-2030 action plan address adaptation alongside emission cuts. It reports that the urban heat island makes the city 3 to 7 degrees Celsius warmer than the surrounding Geneva countryside, and sets a target of limiting urban heat islands to at most about 5 percent of the urban area by 2050. Measures include strengthening the urban green network and a strategic vegetation plan, de-sealing soils, and bringing water back into the city. The canton also runs the Cool City project and provides municipalities with maps of cool islands."
+    },
+    {
+      "id": "bern_rahmenplan",
+      "title": "Rahmenplan Stadtklima",
+      "publisher": "Stadt Bern (Stadtgrün Bern)",
+      "year": 2024,
+      "region": "Bern",
+      "url": "https://www.bern.ch/themen/umwelt-natur-und-energie/klima/klimaanpassung/planung-und-umsetzung-in-der-stadt-bern/rahmenplan-stadtklima",
+      "synthetic": false,
+      "content": "Bern's urban-climate framework plan sets out where planning measures for climate adaptation work best. It defines a catalogue of 22 measures, from creating green space and greening building envelopes to large shade-giving trees and sponge-city principles for handling heat and heavy rain. Heat hotspots are identified using the Stadtklima Bern temperature-measurement network operated jointly by the University of Bern, Energie Wasser Bern and the City of Bern. A Climate Adaptation Regulation took effect on 1 January 2025."
+    },
+    {
+      "id": "lausanne_plan_climat",
+      "title": "Plan climat - Objectif canopee",
+      "publisher": "Ville de Lausanne",
+      "year": 2021,
+      "region": "Lausanne",
+      "url": "https://www.lausanne.ch/apps/actualites/index.php?actu_id=59580",
+      "synthetic": false,
+      "content": "Lausanne's climate plan uses the tree canopy as its main tool for cooling the city. Canopy covers about 34 percent of the whole municipality but only around 20 percent of the dense urban zone that is most exposed to heat islands. The city set a target of increasing canopy cover by 50 percent by 2040, which it estimates requires roughly 186 hectares of additional canopy, on the order of 25,000 new trees. Trees are presented as both adaptation and mitigation: they cool the air, store carbon, infiltrate rain and trap fine particles."
+    }
+  ]
+}
