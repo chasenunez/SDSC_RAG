@@ -1,45 +1,44 @@
+# Swiss Urban Heat: a Geo-RAG + Knowledge Graph slice
 
 You pick a Swiss city and ask "how has urban heat changed here over the last decade?" The tool pulls real satellite measurements of how hot the ground gets, finds the official reports that describe that city and its region, and writes a short answer that cites those reports. It shows all of this on one screen: a map with a heat overlay, a panel listing the documents it used, and the written answer.
 
-### The structure of this repo:
-The goal (as stipulated by the instructions) is to create "A working vertical slice" that answers one question end to end. To that end, this is a proof of concept for how we *might* be able to combine three main components in a scalable way:
+### The structure of this repo
 
-1) *geospatial data*: this will ideally be a publically accessible satellite remote sensing product with a suffeciently long time series. The example here mentions urban heat, and since temperature is one of the more robust and well documented data products, I will probably start there. Though preipitation and snow-cover are also good ideas for switzerland. 
+The goal (as stipulated by the instructions) is to build "a working vertical slice" that answers one question end to end. To that end, this is a proof of concept for how three components can be combined in a scalable way:
 
-2) *a knowledge graph (KG)* that is capable of interlinking different data entities with their semantic relationships to a large language model (LLM). I think we can lean on the (usually) well documented metadata fot these large geospatial layers, especially those that are derived from the same same sensors/satellites.  The graph is the gatekeeper: a question resolves to a region, the graph selects the documents attached to that region or its parents, and vector search only ranks chunks from those documents. 
+1) *Geospatial data*: ideally a publicly accessible satellite remote sensing product with a sufficiently long time series. The example here is urban heat — temperature is one of the more robust and well-documented data products, so it's a sensible starting point. Precipitation and snow cover would be the next candidates for Switzerland.
 
-3) *A RAG (response augmented generation) module* that can ground our LLM in external data, allowing it to retrieve specific, up-to-date data instead of relying solely on static training data, providing context-aware responses. 
+2) *A knowledge graph (KG)* that links different data entities with the semantic relationships a large language model (LLM) can lean on. Geospatial layers usually come with rich metadata, especially those derived from the same sensors/satellites, so there's plenty for the graph to bind. The graph is the gatekeeper: a question resolves to a region, the graph selects the documents attached to that region or its parents, and vector search ranks chunks only inside those documents.
 
-As I understand it, the knowledge graph decides *which* documents are relevant by where they apply, and only then does the search look *inside* those documents. The graph leads, the search follows.
+3) *A RAG (retrieval-augmented generation) module* that grounds the LLM in external data, letting it return specific, citable, up-to-date material instead of relying on static training data.
 
-I probably should have chosen a prompt where I could best display my existing skills since my experience with KG's, RAG, and LLM's and is limited to a course I took on boot.dev. However, I have somewhat more expereince retrieving, combining and analyzing geospatial satellite remote sensing data for global inference, so the utility of using LLM's for a dashboard is clear to me. with that out of the way, let's talk turkey:
+The shape, in one line: the knowledge graph decides *which* documents are relevant by where they apply, and only then does the search look *inside* those documents. The graph leads, the search follows.
 
-### Scoping and specifics:
+A note on background: my experience with KGs, RAG, and LLMs comes mostly from a boot.dev course, while I've spent more time retrieving, combining, and analyzing geospatial remote sensing data for global inference. I leaned into the geospatial layer where I had the most leverage and kept the graph and RAG layers a tight, scoped slice rather than overreaching. With that out of the way, let's talk turkey.
 
+### Scoping and specifics
 
-#### What I tried to do fully:
-- I used Real surface temperature, from Landsat Collection 2 Level-2 on Microsoft Planetary Computer, with the USGS scale and offset applied to get Celsius and pixel-level cloud and shadow masking from the QA band. Projections were going to be a pain point so I kept them explicit: each scene is read in its native UTM, the city bbox is reprojected from WGS84 into the scene's CRS for a windowed read, and the overlay is reprojected back to WGS84 for display on the map.
+The full scope document lives in [`SCOPE.md`](SCOPE.md). The short version is below.
 
-- I used Real Swiss boundaries. These are pretty simple when takenfrom swissBOUNDARIES3D (swisstopo, native EPSG:2056), reprojected to WGS84 with explicit bbox handling. Cities are easily selected by federal BFS number and the resulting polygon name is cross-checked against the expected city to catch any silent mismatch.
+#### What I built fully
 
-- I made a knowledge graph in Oxigraph (new to me but small enough to model cleanly), with Region, Dataset, and Document nodes and within, describesRegion, coversRegion, and delineatedBy edges. I made it so that you can turn the filter off in the dashboard and  see other cities' plans leak into the result.
+- **Real surface temperature**, from Landsat Collection 2 Level-2 on Microsoft Planetary Computer, with the USGS scale and offset applied to get Celsius and pixel-level cloud and shadow masking from the QA band. Projections were going to be a pain point so I kept them explicit: each scene is read in its native UTM, the city bbox is reprojected from WGS84 into the scene's CRS for a windowed read, and the overlay is reprojected back to WGS84 for display on the map.
+- **Real Swiss boundaries** from swissBOUNDARIES3D (swisstopo, native EPSG:2056), reprojected to WGS84 with explicit bbox handling. Cities are selected by federal BFS number and the resulting polygon name is cross-checked against the expected city to catch any silent mismatch.
+- **A knowledge graph in Oxigraph** (new to me but small enough to model cleanly), with Region, Dataset, and Document nodes and within, describesRegion, coversRegion, and delineatedBy edges. There's a toggle in the dashboard that turns the graph filter off, so you can watch other cities' plans leak into the result.
+- **A graph-driven RAG**: document chunks are embedded into Qdrant, a question resolves to a region, the graph picks candidate documents via a `within*` traversal, and vector search runs only inside that set. The answer is generated through OpenRouter with structured output via pydantic-ai, and a grounding guard drops any citation that points at a source the model did not actually see.
 
-- I made a really simple graph-driven RAG: document chunks are embedded into Qdrant, a question resolves a region, the graph walks within to pick candidate documents, and vector search runs only inside that set. The answer is generated through OpenRouter with structured output via pydantic-ai, and a grounding guard drops any citation that points at a source the model did not actually see.
+#### What I simplified for time and computing budget
 
-#### What I simplified for convenience/computing time:
-- To keep this manageable I stayed inside Switzerland and worked at city scale: Zürich, Genève, Basel, Bern, Lausanne. Using a small number of regions let me attach real, distinct documents to each one rather than pretending a tiny corpus covers a whole country. The graph hierarchy is modelled as city within canton within country, so the same retrieval code works at coarser scales; only the data loading would change.
-
-- I used one clear-sky summer Landsat scene per year, not monthly composites. This is crazy and makes the results completely useless, but the results are from real data with real cloud masking, so the app can report the trend with its variability and call the decadal signal indicative. This is the first thing i will try to change if I have time. 
-
-- I had to limit the number of climate policy document in the corpus to seven (real) documents stored as source-grounded summaries with verified titles, publishers, years, and URLs, rather than full PDF ingestion. This Keeps the repo small and license-clean while still giving retrieval real, citable material per region.
-
+- I stayed inside Switzerland and worked at city scale: Zürich, Genève, Basel, Bern, Lausanne. A small region set lets each city carry real, distinct documents rather than pretending a tiny corpus covers a whole country. The graph hierarchy is modelled as city within canton within country, so the same retrieval code works at coarser scales; only the data loading would change.
+- One clear-sky summer Landsat scene per year, not monthly composites. Each value carries that day's weather, so the headline decadal trend is reported alongside its year-to-year spread and labelled indicative rather than definitive. This is the single biggest honest weakness, and the first thing I'd replace with a monthly median.
+- The corpus is seven (real) climate-policy documents stored as source-grounded summaries with verified titles, publishers, years, and URLs, rather than full PDF ingestion. Keeps the repo small and license-clean while still giving retrieval real, citable material per region.
 - A deterministic, clearly-labelled templated fallback runs when no LLM key is set (or when the call fails), so the narrative panel is never empty for a reviewer without an OpenRouter account.
 
-#### What I deliberately left out:
+#### What I deliberately left out
 
 Canton and national scale, sensor time series, multi-narrative dashboards, a real GIS stack, and user authentication. The graph hierarchy already supports rolling up to canton and country; that extension would live in the data-loading step, not the retrieval. The rest adds breadth, not new design, so I described it here instead of building it shallow.
 
-### Putting the bits togeather:
+### Putting the bits together
 
 ```
 ========================  STEP 1: SETUP THE PIECES  ========================
@@ -61,7 +60,7 @@ Goal: gather the data and prepare it so questions can be answered quickly.
                                                             searchable numbers)
 
 ============================  STEP 2: ASK A QUESTION  ======================
-Goal: answer "how has urban heat changed in <name a big swiss city>?" using the prepared data.
+Goal: answer "how has urban heat changed in <a big Swiss city>?" using the prepared data.
 
    You: pick a city, type a question
                  │
@@ -112,14 +111,14 @@ src/geokg/
   index.py       embed chunks into local Qdrant
   retrieval.py   graph-first retrieval (graph filters, vectors rank)
   rag.py         pydantic-ai agent over OpenRouter, grounded + cited
-   viz.py         LST raster to map-overlay image
+  viz.py         LST raster to map-overlay image
 scripts/setup_data.py   one-shot data preparation
 app/dashboard.py        Streamlit map + graph panel + answer
 ```
 
 ## First-time setup guide
 
-### 1. Install `uv` if you don't already have it installed. 
+### 1. Install `uv` if you don't already have it
 
 - macOS/Linux: `curl -LsSf https://astral.sh/uv/install.sh | sh`
 - Windows: `powershell -c "irm https://astral.sh/uv/install.ps1 | iex"`
@@ -137,9 +136,9 @@ uv sync
 
 ### 3. Set the LLM API key (the easy way)
 
-The app reads exactly two environment variables: `OPENROUTER_API_KEY` (required for the LLM answer) and `OPENROUTER_MODEL` (a sort of an optional override; the default is `anthropic/claude-3.5-sonnet`). Pick one of the three options below.
+The app reads exactly two environment variables: `OPENROUTER_API_KEY` (required for the LLM answer) and `OPENROUTER_MODEL` (an optional override; the default is set in `src/geokg/config.py`). Pick one of the three options below.
 
-#### Option A: a `.env` file (recommended).
+#### Option A: a `.env` file (recommended)
 
 Get a key first: sign up at <https://openrouter.ai>, go to Keys, create one. It looks like `sk-or-v1-...`.
 
@@ -157,18 +156,17 @@ OPENROUTER_API_KEY=sk-or-v1-your-actual-key-here
 
 The `.env` file is gitignored, so the key is never committed.
 
-
-#### Option B: export in your shell (one-off, no file).
+#### Option B: export in your shell (one-off, no file)
 
 ```
 export OPENROUTER_API_KEY=sk-or-v1-your-actual-key-here
 ```
 
-Works for the current terminal only. The code uses `os.environ.setdefault`, which means a value already in the environment wins over the `.env` file. This is useful for temporary overrides.
+Works for the current terminal only. The code uses `os.environ.setdefault`, which means a value already in the environment wins over the `.env` file. Useful for temporary overrides.
 
-#### Option C: no key at all.
+#### Option C: no key at all
 
-The app runs fully without a key. The answer panel shows a clearly-labeled templated summary built from the retrieved sources and the heat statistics, with the same citations and caveat. You only lose the LLM-written prose. The map, graph panel, retrieved chunks, and citations all still render.
+The app runs fully without a key. The answer panel shows a clearly-labelled templated summary built from the retrieved sources and the heat statistics, with the same citations and caveat. You only lose the LLM-written prose. The map, graph panel, retrieved chunks, and citations all still render.
 
 ### 4. Prepare the data (one time, about two minutes)
 
@@ -221,11 +219,6 @@ If you set the key and still see the fallback caption, check, in this order:
 
 ## Next steps
 
-The clearest improvement for scaling is to compute the heat trend on a server-side service like Google Earth Engine instead of pulling single scenes here. GEE runs the analysis over its Landsat catalog, so cloud masking, monthly compositing, and a per-pixel trend (`ee.Reducer.linearFit` over `system:time_start`) would replace the weather-noisy single-scene loop in `heat.py`, and `reduceRegions` returns per-region statistics for every municipality in one call, which is what makes canton or national scale practical rather than a per-area download. 
+The clearest improvement for scaling is to compute the heat trend on a server-side service like Google Earth Engine instead of pulling single scenes here. GEE runs the analysis over its Landsat catalog, so cloud masking, monthly compositing, and a per-pixel trend (`ee.Reducer.linearFit` over `system:time_start`) would replace the weather-noisy single-scene loop in `heat.py`, and `reduceRegions` returns per-region statistics for every municipality in one call, which is what makes canton or national scale practical rather than a per-area download.
 
 The tradeoff is access. GEE needs a registered Google Cloud project (free for noncommercial and academic use, but with an eligibility questionnaire and quota tiers), so depending on it at runtime would break the current clone-and-run setup. The way to get both is to use GEE as an offline precompute step: run it once to produce the per-region, per-year statistics and a composite raster, commit those as cached artifacts, and keep the dashboard dependency-free. That is the same precompute-and-cache shape `scripts/setup_data.py` already uses, just with a more capable backend. At national scale the cached statistics would move from CSV to DuckDB or Parquet so the lookups stay fast.
-
-
-
-
-
