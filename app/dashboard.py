@@ -106,12 +106,20 @@ def answer_panel(question: str, city: config.City, ret: retrieval.Retrieval, sum
     """Show the grounded answer (if a key is set) and the retrieved evidence."""
     st.subheader("Answer")
 
+    # Either path produces an `Answer`. We never let an API failure crash the page:
+    # any error from the LLM call drops to the same templated fallback as the no-key
+    # path, with a short notice explaining what happened.
     if rag.is_configured():
-        with st.spinner("Generating grounded answer…"):
-            ans = rag.generate_answer(question, _region_label(city), ret, summary)
+        try:
+            with st.spinner("Generating grounded answer…"):
+                ans = rag.generate_answer(question, _region_label(city), ret, summary)
+        except Exception as exc:
+            ans = rag.fallback_answer(_region_label(city), ret, summary)
+            st.warning(
+                f"LLM call failed ({type(exc).__name__}): {exc}. "
+                "Showing the templated summary instead."
+            )
     else:
-        # No key: show a deterministic, clearly-labelled summary instead of nothing,
-        # so the narrative panel is never empty for an evaluator.
         ans = rag.fallback_answer(_region_label(city), ret, summary)
         st.caption(
             "Generated without an LLM (no `OPENROUTER_API_KEY` set): a templated summary "
