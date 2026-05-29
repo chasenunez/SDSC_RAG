@@ -226,16 +226,6 @@ The clearest improvement for scaling is to compute the heat trend on a server-si
 The tradeoff is access. GEE needs a registered Google Cloud project (free for noncommercial and academic use, but with an eligibility questionnaire and quota tiers), so depending on it at runtime would break the current clone-and-run setup. The way to get both is to use GEE as an offline precompute step: run it once to produce the per-region, per-year statistics and a composite raster, commit those as cached artifacts, and keep the dashboard dependency-free. That is the same precompute-and-cache shape `scripts/setup_data.py` already uses, just with a more capable backend. At national scale the cached statistics would move from CSV to DuckDB or Parquet so the lookups stay fast.
 
 
-To DO before turn in:
-- ADD MAX HEAT WITHIN A MONTH TO CONSTREAIN RESULTS CURRENTLY ONE CLEAR DAY PER YEAR WHICH IS CRAZY
-_fix the API problem: i.e. if there is no credit, return the canned answers with instructions for how to use the llm api with credit. or find a free model. 
-- improve the UI/UX of the streamlit, adding the answer to the top, replacing the header, and improving the map aes. 
-- improve the readme instructions
-- add graphics to readme
-- improve the .env file. 
-- code review
-- add expansion notes
-
 
 
 
