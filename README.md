@@ -102,9 +102,8 @@ src/geokg/
    viz.py         LST raster to map-overlay image
 scripts/setup_data.py   one-shot data preparation
 app/dashboard.py        Streamlit map + graph panel + answer
-tests/test_pipeline.py  bbox/projection, graph traversal, retrieval filter
-
 ```
+
 
  ## Acronyms (of which there are many)
 
