@@ -87,7 +87,22 @@ Goal: answer "how has urban heat changed in <name a big swiss city>?" using the 
    └───────────────────────────────────────────────┘
 ```
 
-## Acronyms (of which there are many)
+## Layout
+
+```
+src/geokg/
+  config.py      cities, paths, endpoints, model defaults
+  boundaries.py  swissBOUNDARIES3D download, reproject, city polygons
+  heat.py        Landsat LST series, cloud masking, decadal summary
+  documents.py   corpus loader + chunker
+  graph.py       Oxigraph RDF model + SPARQL region traversal
+  index.py       embed chunks into local Qdrant
+  retrieval.py   graph-first retrieval (graph filters, vectors rank)
+  rag.py         pydantic-ai agent over OpenRouter, grounded + cited
+
+```
+
+ ## Acronyms (of which there are many)
 
 - **RAG**: Retrieval-Augmented Generation. Fetch real sources, then have a model write the answer.
 - **LLM**: Large Language Model. The text-writing model.
