@@ -1,32 +1,22 @@
-# SDSC_RAG
-This is a proof of concept for how we might be able to combine three main components:
 
-1) geospatial data: this will ideally be a publically accessible satellite remote sensing product with a suffeciently long time series. The example here mentions urban heat, and since temperature is one of the more robust and well documented data products, I will probably start there. Though preipitation and snow-cover are also good ideas for switzerland. 
+You pick a Swiss city and ask "how has urban heat changed here over the last decade?" The tool pulls real satellite measurements of how hot the ground gets, finds the official reports that describe that city and its region, and writes a short answer that cites those reports. It shows all of this on one screen: a map with a heat overlay, a panel listing the documents it used, and the written answer.
 
-2) a knowledge graph (KG) that is capable of interlinking different data entities with their semantic relationships to a large language model (LLM). I think we can lean on the (usually) well documented metadata fot these large geospatial layers, especially those that are derived from the same same sensors/satellites. 
+### The structure of this repo:
+The goal (as stipulated by the instructions) is to create "A working vertical slice" that answers one question end to end. To that end, this is a proof of concept for how we *might* be able to combine three main components in a scalable way:
 
-3) a RAG (response augmented generation) module that can ground our LLM in external data, allowing it to retrieve specific, up-to-date data instead of relying solely on static training data, providing context-aware responses. 
+1) *geospatial data*: this will ideally be a publically accessible satellite remote sensing product with a suffeciently long time series. The example here mentions urban heat, and since temperature is one of the more robust and well documented data products, I will probably start there. Though preipitation and snow-cover are also good ideas for switzerland. 
 
+2) *a knowledge graph (KG)* that is capable of interlinking different data entities with their semantic relationships to a large language model (LLM). I think we can lean on the (usually) well documented metadata fot these large geospatial layers, especially those that are derived from the same same sensors/satellites.  The graph is the gatekeeper: a question resolves to a region, the graph selects the documents attached to that region or its parents, and vector search only ranks chunks from those documents. 
 
+3) *A RAG (response augmented generation) module* that can ground our LLM in external data, allowing it to retrieve specific, up-to-date data instead of relying solely on static training data, providing context-aware responses. 
 
-A bit about my approach:
+As I understand it, the knowledge graph decides *which* documents are relevant by where they apply, and only then does the search look *inside* those documents. The graph leads, the search follows.
 
 I probably should have chosen a prompt where I could best display my existing skills since my experience with KG's, RAG, and LLM's and is limited to a course I took on boot.dev. However, I have somewhat more expereince retrieving, combining and analyzing geospatial satellite remote sensing data for global inference, so the utility of using LLM's for a dashboard is clear to me. with that out of the way, let's talk turkey:
 
+### Scoping and specifics:
 
-# Swiss Urban Heat: Geospatial RAG + Knowledge Graph
-
-The goal (as stipulated by the instructions) is to create "A working vertical slice" that answers one question end to end. The instructions use the example:
-
-> How has urban heat changed in this region over the last decade? What is being done about it?
-
-So instead of wasting time thinking of another question to answer, I am just going to go with that one.
-
-# Scoping
-
-I understand the prompt to be asking for a proof of concept that shows one narrative, end to end, built so the design can be extended to the full extent (more layers, more data, more questions, more capacity), rather than a broad system that is incomplete. 
-
-To that end, it makese sense to stay within switzerland, and the biggest and most permenant cities: Zürich, Genève, Basel, Bern, Lausanne. 
+To keep this managable, it makese sense to stay within Switzerland, and the biggest and most permenant cities: Zürich, Genève, Basel, Bern, Lausanne. 
 
 Off the top of my head, I think we will have to combine:
 
@@ -36,22 +26,68 @@ Off the top of my head, I think we will have to combine:
 4) For the KG, the prompt suggested to use Oxigraph, which I am unfamiliar with, but seems straightforward enough. From what I can read, it seems like I'll include Region, Dataset, and Document nodes with meaningful edges (`within`, `describesRegion`, `coversRegion`, `delineatedBy`).
 5) for the RAG, is seems like i'll need to have some document chunks embedded into Qdrant. A submitted questions will resolve region, the graph selects candidate documents, and vector search runs only within those documents. The answer is generated by an LLM and will list all the sources used. The graph hierarchy (city within canton within country) is modelled so the same retrieval code works at coarser scales; only the data loading would change (I think).
 
-## Putting the bits togeather:
+### Putting the bits togeather:
 
 ```
-boundaries ─┐
-            ├─► knowledge graph (regions ↔ datasets ↔ documents)
-documents ──┘            │
-                         │  traverse city → canton → country
-                         ▼
-question ─► graph picks in-scope documents ─► vector search within them ─► LLM answer (cited)
+========================  STEP 1: SETUP THE PIECES  ========================
+Goal: gather the data and prepare it so questions can be answered quickly.
+
+  swisstopo                       boundaries.py           data/cache/
+  swissBOUNDARIES3D  ───────────► download, convert  ───► cities.gpkg
+  (official city shapes)          map coordinates          (city outlines +
+                                                            bounding boxes)
+
+  Landsat satellite               heat.py                 data/cache/
+  (via Planetary       ─────────► pick clear summer  ───► lst_annual.csv +
+   Computer)                      scenes, drop clouds,     overlay images
+  (ground temperature)            average per city/year
+
+  manifest.json                   documents.py            index.py
+  (7 real reports,    ──────────► split into chunks  ───► Qdrant store
+   as text)                                                (text turned into
+                                                            searchable numbers)
+
+============================  STEP 2: ASK A QUESTION  ======================
+Goal: answer "how has urban heat changed in <name a big swiss city>?" using the prepared data.
+
+   You: pick a city, type a question
+                 │
+                 ▼
+   ┌───────────────────────────────────────────────┐
+   │ graph.py   =  the KNOWLEDGE GRAPH (Oxigraph)    │
+   │ Walks a map of relationships:                   │
+   │     city  →  canton  →  country                 │
+   │ Returns: which documents describe this place.   │
+   └───────────────────────────────────────────────┘
+                 │  a short list of "in-scope" documents
+                 ▼
+   ┌───────────────────────────────────────────────┐
+   │ retrieval.py  =  the SEARCH STEP                │
+   │ Searches the Qdrant numbers, but only inside    │
+   │ the documents the graph chose. Returns the most │
+   │ relevant passages plus the heat statistics.     │
+   └───────────────────────────────────────────────┘
+                 │  passages + statistics
+                 ▼
+   ┌───────────────────────────────────────────────┐
+   │ rag.py     =  the ANSWER STEP                   │
+   │ A language model (via OpenRouter) writes a short│
+   │ answer that cites those sources. With no API key│
+   │ a plain templated summary is shown instead.     │
+   └───────────────────────────────────────────────┘
+                 │  cited answer
+                 ▼
+   ┌───────────────────────────────────────────────┐
+   │ dashboard.py  =  the SCREEN (Streamlit)         │
+   │  ┌──────────┬───────────────┬────────────────┐  │
+   │  │  MAP +   │  GRAPH        │  CITED          │  │
+   │  │  heat    │  context      │  ANSWER         │  │
+   │  │  overlay │  (which docs) │                 │  │
+   │  └──────────┴───────────────┴────────────────┘  │
+   └───────────────────────────────────────────────┘
 ```
-The graph is the gatekeeper: a question resolves to a region, the graph selects the documents attached to that region or its parents, and vector search only ranks chunks from those documents. 
-
-Three data layers: 
-1) **Geospatial.** City polygons from swissBOUNDARIES3D (EPSG:2056, reprojected to WGS84) and a decade of summer land surface temperature per city from Landsat Collection 2 Level-2, cloud-masked with the QA band.
-2) **Knowledge graph.** RDF in Oxigraph: `Region`, `Dataset`, `Document` nodes with `within`, `describesRegion`, `coversRegion`, `delineatedBy` edges, queried with SPARQL. 
-3) **RAG.** Chunks embedded with fastembed into a local Qdrant store; answers generated through OpenRouter with pydantic-ai and grounded to the retrieved sources.
 
 
-`tests/` covers projections, graph traversal, and the retrieval filter.
+
+
+
