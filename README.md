@@ -1,22 +1,22 @@
 # Swiss Urban Heat: a Geo-RAG + Knowledge Graph slice
 
-You pick a Swiss city and ask "how has urban heat changed here over the last decade?" The tool interprets the question, pulls real satellite measurements of how hot the ground gets in a city, finds the official reports that describe that city and its region, and writes a short answer that cites those reports. It shows all of this on one screen: a map with a heat overlay, a panel listing the documents it used, and the written answer.
+A platform that merges remotely sensed satellite geospatial data, a knowledge graph of connected regional data, and LLM-powered Retrieval-Augmented Generation into a single interactive, story-driven dashboard.
+
+The user provides a geographic area of interest (in this case a major Swiss city) and provides a question about that area (e.g. "how has urban heat changed here over the last decade?"). The tool interprets the question, pulls real land surface terperature records, finds the official reports that describe that city and its region, and then uses all that context to respond with a clear answer in the form of text, graphics, and citations.
 
 ![RAGDemo](assets/dashboard.png)
 
 ### The structure of this repo
 
-The goal (as stipulated by the instructions) is to build a working vertical slice that answers one question end to end. To that end, this is a proof of concept for how three components can be combined in a scalable way:
+This is a functional vertical slice of a much larger piece of software, illustrating how the components of this stack fit togeather and talk to one another:
 
-1) *Geospatial data*: ideally a publicly accessible satellite remote sensing product with a sufficiently long time series. The example here is urban heat — temperature is one of the more robust and well-documented data products, so it's a sensible starting point. Precipitation and snow cover would be the next candidates for Switzerland.
+1) Publicly available *Geospatial data* with a sufficiently long time series. The example here is urban heat — land surface temperature (LST) is one of the more robust and well-documented data products, so it's a sensible starting point. Precipitation and snow cover would be the next candidates for Switzerland.
 
-2) *A knowledge graph (KG)* that links different data entities with the semantic relationships a large language model (LLM) can lean on. Geospatial layers usually come with rich metadata, especially those derived from the same sensors/satellites, so there's plenty for the graph to bind. The graph is the gatekeeper: a question resolves to a region, the graph selects the documents attached to that region or its parents, and vector search ranks chunks only inside those documents.
+2) *A knowledge graph (KG)* that links different data entities with the semantic relationships a large language model (LLM) can lean on. Geospatial layers usually come with rich metadata, especially those derived from the same sensors/satellites, so there's plenty for the graph to bind. The graph is situated here as the gatekeeper: a question first resolves to a region, then the graph selects the documents attached to that region or its parents, and vector search ranks chunks only inside those documents.
 
-3) *A RAG (retrieval-augmented generation) module* that grounds the LLM in external data, letting it return specific, citable, up-to-date material instead of relying on static training data.
+3) *A Retrieval-Augmented Generation (RAG) module* that grounds the LLM in external data, letting it return specific, citable, up-to-date material instead of relying on static training data.
 
 The knowledge graph decides which documents are relevant by where they apply, and only then does the search look inside those documents. The graph leads, the search follows.
-
-A note on background: my experience with KGs, RAG, and LLMs comes mostly from a boot.dev course, whereas I've spent more time retrieving, combining, and analyzing geospatial remote sensing data for global inference. I leaned into the geospatial computation where I had the most leverage and kept the graph and RAG layers a tight, scoped slice rather than overreaching. With that out of the way, let's talk turkey.
 
 ### Scoping and specifics
 
